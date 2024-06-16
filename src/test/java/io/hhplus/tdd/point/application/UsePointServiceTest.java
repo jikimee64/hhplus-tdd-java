@@ -1,5 +1,7 @@
 package io.hhplus.tdd.point.application;
 
+import io.hhplus.tdd.point.domain.PointHistory;
+import io.hhplus.tdd.point.domain.TransactionType;
 import io.hhplus.tdd.point.domain.UserPoint;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -7,17 +9,18 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static io.hhplus.tdd.point.domain.TransactionType.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 /**
  * 포인트 사용 테스트 케이스
  * <p>
  * - 포인트 사용
-     * - 100원 이상 500_000원 이하까지 사용할 수 있다.
-     * - 100원 미만 500_000원 초과일 경우 사용할 수 있다.
-     * - 잔액이 부족할 경우 사용할 수 없다.
-     * - 사용 성공 및 실패 내역을 기록한다
+ * - 100원 이상 500_000원 이하까지 사용할 수 있다.
+ * - 100원 미만 500_000원 초과일 경우 사용할 수 있다.
+ * - 잔액이 부족할 경우 사용할 수 없다.
+ * - 사용 성공 및 실패 내역을 기록한다
  */
 @SpringBootTest
 class UsePointServiceTest {
@@ -28,6 +31,9 @@ class UsePointServiceTest {
     @Autowired
     private UsePointService usePointService;
 
+    @Autowired
+    private GetPointHistoryService getPointHistoryService;
+
     @ParameterizedTest
     @ValueSource(longs = {100, 500_000})
     void 포인트_사용시_100원_이상_500_000원_이하로_사용할_수_있다(long amount) {
@@ -37,10 +43,29 @@ class UsePointServiceTest {
         UserPoint userPoint = chargePointService.charge(userId, chargeAmount);
 
         // when
-        boolean result = usePointService.usePoint(userPoint.userId(), amount);
+        UserPoint usedUserPoint = usePointService.usePoint(userPoint.userId(), amount);
 
         // then
-        assertThat(result).isTrue();
+        assertAll(
+                () -> assertThat(usedUserPoint.point()).isEqualTo(chargeAmount - amount),
+                () -> assertThatPointHistory(amount, userId, USE_SUCCESS)
+        );
+
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {99, 500_001})
+    void 포인트_사용시_100원_미만_500_000원_초과일_경우_사용할_수_없다(long amount) {
+        // given
+        long userId = 1L;
+
+        // when
+        usePointService.usePoint(userId, amount);
+
+        // then
+        assertAll(
+                () -> assertThatPointHistory(amount, userId, USE_FAIL)
+        );
     }
 
     @Test
@@ -49,12 +74,25 @@ class UsePointServiceTest {
         long userId = 1L;
         long chargeAmount = 1000;
         long useAmount = 1001;
-        UserPoint userPoint = chargePointService.charge(userId, chargeAmount);
+        UserPoint chargedUserPoint = chargePointService.charge(userId, chargeAmount);
 
-        // when & then
-        assertThatThrownBy(() -> usePointService.usePoint(userPoint.userId(), useAmount))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("남은 포인트 잔액이 부족하여 포인트를 사용할 수 없습니다.");
+        // when
+        UserPoint userPoint = usePointService.usePoint(chargedUserPoint.userId(), useAmount);
+
+        // then
+        assertAll(
+                () -> assertThat(userPoint.point()).isEqualTo(chargeAmount),
+                () -> assertThatPointHistory(useAmount, userId, USE_FAIL)
+        );
+    }
+
+    private void assertThatPointHistory(long amount, long userId, TransactionType type) {
+        PointHistory pointHistory = getPointHistoryService.history(userId);
+        assertAll(
+                () -> assertThat(pointHistory.userId()).isEqualTo(userId),
+                () -> assertThat(pointHistory.amount()).isEqualTo(amount),
+                () -> assertThat(pointHistory.type()).isEqualTo(type)
+        );
     }
 
 }

@@ -1,5 +1,6 @@
 package io.hhplus.tdd.point.domain;
 
+import io.hhplus.tdd.point.application.exception.UsePointFailException;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -28,8 +29,7 @@ class UserPointTest {
 
         // when & then
         assertThatThrownBy(() -> userPoint.usePoint(usePoint))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("남은 포인트 잔액이 부족하여 포인트를 사용할 수 없습니다.");
+                .isInstanceOf(UsePointFailException.class);
 
     }
 
