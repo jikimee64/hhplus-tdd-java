@@ -1,11 +1,13 @@
 package io.hhplus.tdd.point.application;
 
 import io.hhplus.tdd.point.domain.UserPoint;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 /**
@@ -39,6 +41,20 @@ class UsePointServiceTest {
 
         // then
         assertThat(result).isTrue();
+    }
+
+    @Test
+    void 포인트_사용시_남은_포인트_잔액이_부족한경우_사용할_수_없다() {
+        // given
+        long userId = 1L;
+        long chargeAmount = 1000;
+        long useAmount = 1001;
+        UserPoint userPoint = chargePointService.charge(userId, chargeAmount);
+
+        // when & then
+        assertThatThrownBy(() -> usePointService.usePoint(userPoint.userId(), useAmount))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("남은 포인트 잔액이 부족하여 포인트를 사용할 수 없습니다.");
     }
 
 }

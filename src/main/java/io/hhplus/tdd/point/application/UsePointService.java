@@ -17,4 +17,5 @@ public class UsePointService {
         userPointRepository.insertOrUpdate(usedUserPoint.userId(), usedUserPoint.point());
         return true;
     }
+
 }
