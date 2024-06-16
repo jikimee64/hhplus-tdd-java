@@ -11,7 +11,7 @@ public class PointService {
 
     private final UserPointRepository userPointRepository;
 
-    public UserPoint charge(long pointId, long amount) {
-        return userPointRepository.insertOrUpdate(pointId, amount);
+    public UserPoint charge(ChargePointCommand command) {
+        return userPointRepository.insertOrUpdate(command.getPointId(), command.getAmount());
     }
 }
