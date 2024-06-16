@@ -13,10 +13,19 @@ public class PointService {
     private final UserPointRepository userPointRepository;
     private final PointHistoryRepository pointHistoryRepository;
 
-    public UserPoint charge(ChargePointCommand command) {
-        UserPoint userPoint = userPointRepository.insertOrUpdate(command.userId(), command.amount());
+    public UserPoint charge(long userId, long amount) {
+        UserPoint userPoint = userPointRepository.selectById(userId);
+
+        ChargePointValidator chargePointValidator = new ChargePointValidator();
+        if(!chargePointValidator.validateAmount(amount)){
+            pointHistoryRepository.insert(
+                    userId, amount, TransactionType.CHARGE_FAIL, System.currentTimeMillis()
+            );
+            return userPoint;
+        }
+        userPoint = userPointRepository.insertOrUpdate(userId, amount);
         pointHistoryRepository.insert(
-                command.userId(), command.amount(), TransactionType.CHARGE_SUCCESS, System.currentTimeMillis()
+                userId, amount, TransactionType.CHARGE_SUCCESS, System.currentTimeMillis()
         );
         return userPoint;
     }
