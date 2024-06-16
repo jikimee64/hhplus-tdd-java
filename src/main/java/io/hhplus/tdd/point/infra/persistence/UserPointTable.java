@@ -16,15 +16,15 @@ public class UserPointTable implements UserPointRepository {
 
     private final Map<Long, UserPoint> table = new HashMap<>();
 
-    public UserPoint selectById(Long id) {
+    public UserPoint selectById(Long userId) {
         throttle(200);
-        return table.getOrDefault(id, UserPoint.empty(id));
+        return table.getOrDefault(userId, UserPoint.empty(userId));
     }
 
-    public UserPoint insertOrUpdate(long id, long amount) {
+    public UserPoint insertOrUpdate(long userId, long amount) {
         throttle(300);
-        UserPoint userPoint = new UserPoint(id, amount, System.currentTimeMillis());
-        table.put(id, userPoint);
+        UserPoint userPoint = new UserPoint(userId, amount, System.currentTimeMillis());
+        table.put(userId, userPoint);
         return userPoint;
     }
 
