@@ -1,23 +1,21 @@
 package io.hhplus.tdd.point.application;
 
 import io.hhplus.tdd.point.domain.UserPoint;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * 통합 테스트 케이스
  * <p>
  * - 포인트 충전
  * - 100원 단위로 충전이 가능하다.
- * - 100원 단위가 아닐경우 충전에 실패한다
  * - 100원 미만일 시 충전에 실패한다
+ * - 100원 단위가 아닐경우 충전에 실패한다
  * - 최대 1_000_000원까지 충전 가능하다.
  * - 충전 성공 내역을 기록한다
  * - 1_000_000원을 초과한 경우 충전할 수 없다.
@@ -38,12 +36,12 @@ class PointServiceTest {
     @Autowired
     private PointService pointService;
 
-    @Test
-    void 포인트_충전시_100원_단위로_충전이_가능하다() {
+    @ParameterizedTest
+    @ValueSource(ints = {100, 1100, 12300})
+    void 포인트_충전시_100원_단위로_충전이_가능하다(int amount) {
         // given
         long pointId = 1L;
-        long amount = 100L;
-        ChargePointCommand command = new ChargePointCommand(1L, 100L);
+        ChargePointCommand command = new ChargePointCommand(1L, amount);
 
         // when
         UserPoint userPoint = pointService.charge(command);
@@ -62,6 +60,18 @@ class PointServiceTest {
         assertThatThrownBy(() -> new ChargePointCommand(pointId, amount))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("100원 이상 충전 가능합니다.");
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {101, 1101, 1111, 1250})
+    void 포인트_충전시_100원_단위가_아닐경우_충전할_수_없다(long amount) {
+        // given
+        long pointId = 1L;
+
+        // when & then
+        assertThatThrownBy(() -> new ChargePointCommand(pointId, amount))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("100원 단위로 충전 가능합니다.");
     }
 
 }

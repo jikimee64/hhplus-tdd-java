@@ -12,6 +12,6 @@ public class PointService {
     private final UserPointRepository userPointRepository;
 
     public UserPoint charge(ChargePointCommand command) {
-        return userPointRepository.insertOrUpdate(command.getPointId(), command.getAmount());
+        return userPointRepository.insertOrUpdate(command.pointId(), command.amount());
     }
 }
