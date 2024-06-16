@@ -8,7 +8,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PointService {
+public class ChargePointService {
 
     private final UserPointRepository userPointRepository;
     private final PointHistoryRepository pointHistoryRepository;
@@ -30,11 +30,4 @@ public class PointService {
         return userPoint;
     }
 
-    public List<PointHistory> histories(long userId) {
-        return pointHistoryRepository.selectAllByUserId(userId);
-    }
-
-    public PointHistory history(long userId) {
-        return pointHistoryRepository.selectOneByUserId(userId);
-    }
 }

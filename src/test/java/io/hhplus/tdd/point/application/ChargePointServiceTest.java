@@ -15,7 +15,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 /**
- * 통합 테스트 케이스
+ * 포인트 충천 테스트 케이스
  * <p>
  * - 포인트 충전
      * - 100원 단위로 충전이 가능하다.
@@ -23,21 +23,15 @@ import static org.junit.jupiter.api.Assertions.assertAll;
      * - 100원 단위가 아닐경우 충전에 실패한다
      * - 1_000_000원이 초과할 경우 충전할 수 없다.
      * - 충전 성공 및 실패 내역을 기록한다
- * - 포인트 사용
-     * - 최소 100원 이상 1_000_000원 이하까지 사용할 수 있다.
-     * - 사용 성공 내역을 기록한다
-     * - 잔액이 부족할 경우 사용할 수 없다.
-     * - 사용 실패 내역을 기록한다
- * - 포인트 조회
-     * - 포인트 조회에 성공한다
- * - 포인트 내역 조회
-     * - 포인트 내역 조회에 성공한다
  */
 @SpringBootTest
-class PointServiceTest {
+class ChargePointServiceTest {
 
     @Autowired
-    private PointService pointService;
+    private ChargePointService chargePointService;
+
+    @Autowired
+    private GetPointHistoryService getPointHistoryService;
 
     @ParameterizedTest
     @ValueSource(longs = {100, 1100, 12300})
@@ -46,7 +40,7 @@ class PointServiceTest {
         long userId = 1L;
 
         // when
-        UserPoint userPoint = pointService.charge(userId, amount);
+        UserPoint userPoint = chargePointService.charge(userId, amount);
 
         // then
         assertAll(
@@ -62,7 +56,7 @@ class PointServiceTest {
         long userId = 1L;
 
         // when
-        UserPoint userPoint = pointService.charge(userId, amount);
+        UserPoint userPoint = chargePointService.charge(userId, amount);
 
         // then
         assertAll(
@@ -79,7 +73,7 @@ class PointServiceTest {
         long userId = 1L;
 
         // when
-        UserPoint userPoint = pointService.charge(userId, amount);
+        UserPoint userPoint = chargePointService.charge(userId, amount);
 
         // then
         assertAll(
@@ -95,7 +89,7 @@ class PointServiceTest {
         long amount = 1_000_100L;
 
         // when
-        UserPoint userPoint = pointService.charge(userId, amount);
+        UserPoint userPoint = chargePointService.charge(userId, amount);
 
         // then
         assertAll(
@@ -105,7 +99,7 @@ class PointServiceTest {
     }
 
     private void assertThatPointHistory(long amount, long userId, TransactionType type) {
-        PointHistory pointHistory =  pointService.history(userId);
+        PointHistory pointHistory =  getPointHistoryService.history(userId);
         assertAll(
                 () -> assertThat(pointHistory.userId()).isEqualTo(userId),
                 () -> assertThat(pointHistory.amount()).isEqualTo(amount),
