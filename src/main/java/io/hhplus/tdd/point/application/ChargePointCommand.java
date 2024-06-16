@@ -1,6 +1,6 @@
 package io.hhplus.tdd.point.application;
 
-public record ChargePointCommand(long pointId, long amount) {
+public record ChargePointCommand(long userId, long amount) {
 
     private static final long MIN_AMOUNT = 100;
     private static final long MAX_AMOUNT = 1_000_000;

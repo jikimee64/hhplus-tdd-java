@@ -1,6 +1,5 @@
 package io.hhplus.tdd.point.infra.persistence;
 
-
 import io.hhplus.tdd.point.domain.PointHistory;
 import io.hhplus.tdd.point.domain.PointHistoryRepository;
 import io.hhplus.tdd.point.domain.TransactionType;
@@ -25,8 +24,21 @@ public class PointHistoryTable implements PointHistoryRepository {
         return pointHistory;
     }
 
+    /**
+     *  order by 추가
+     *  - userId로 조회한 데이터를 updateMillis 기준으로 내림차순 정렬하여 반환합니다.
+     */
     public List<PointHistory> selectAllByUserId(long userId) {
-        return table.stream().filter(pointHistory -> pointHistory.userId() == userId).toList();
+        return table.stream().filter(pointHistory -> pointHistory.userId() == userId)
+                .sorted((o1, o2) -> Long.compare(o2.updateMillis(), o1.updateMillis()))
+                .toList();
+    }
+
+    // 포인트 성공 및 실패 내역을 테스트에서 검증하기 위한 API 추가
+    public PointHistory selectOneByUserId(long userId) {
+        return table.stream().filter(pointHistory -> pointHistory.userId() == userId)
+                .min((o1, o2) -> Long.compare(o2.updateMillis(), o1.updateMillis()))
+                .orElseThrow(() -> new IllegalArgumentException("Not found PointHistory By userId: " + userId));
     }
 
     private void throttle(long millis) {
