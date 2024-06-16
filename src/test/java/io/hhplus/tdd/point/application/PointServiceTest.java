@@ -1,5 +1,6 @@
 package io.hhplus.tdd.point.application;
 
+import io.hhplus.tdd.point.domain.PointHistory;
 import io.hhplus.tdd.point.domain.UserPoint;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -7,8 +8,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static io.hhplus.tdd.point.domain.TransactionType.CHARGE_SUCCESS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 /**
  * 통합 테스트 케이스
@@ -36,27 +39,33 @@ class PointServiceTest {
     private PointService pointService;
 
     @ParameterizedTest
-    @ValueSource(ints = {100, 1100, 12300})
-    void 포인트_충전시_100원_단위로_충전이_가능하다(int amount) {
+    @ValueSource(longs = {100, 1100, 12300})
+    void 포인트_충전시_100원_단위로_충전이_가능하다(long amount) {
         // given
-        long pointId = 1L;
-        ChargePointCommand command = new ChargePointCommand(1L, amount);
+        long userId = 1L;
+        ChargePointCommand command = new ChargePointCommand(userId, amount);
 
         // when
         UserPoint userPoint = pointService.charge(command);
 
         // then
-        assertEquals(amount, userPoint.point());
+        PointHistory pointHistory =  pointService.history(userId);
+        assertAll(
+                () -> assertThat(amount).isEqualTo(userPoint.point()),
+                () -> assertThat(pointHistory.userId()).isEqualTo(userId),
+                () -> assertThat(pointHistory.amount()).isEqualTo(amount),
+                () -> assertThat(pointHistory.type()).isEqualTo(CHARGE_SUCCESS)
+        );
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {-100, 0, 99})
+    @ValueSource(longs = {-100, 0, 99})
     void 포인트_충전시_100원_미만일_경우_충전할_수_없다(long amount) {
         // given
-        long pointId = 1L;
+        long userId = 1L;
 
         // when & then
-        assertThatThrownBy(() -> new ChargePointCommand(pointId, amount))
+        assertThatThrownBy(() -> new ChargePointCommand(userId, amount))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("100원 이상 충전 가능합니다.");
     }
@@ -65,10 +74,10 @@ class PointServiceTest {
     @ValueSource(ints = {101, 1101, 1111, 1250})
     void 포인트_충전시_100원_단위가_아닐경우_충전할_수_없다(long amount) {
         // given
-        long pointId = 1L;
+        long userId = 1L;
 
         // when & then
-        assertThatThrownBy(() -> new ChargePointCommand(pointId, amount))
+        assertThatThrownBy(() -> new ChargePointCommand(userId, amount))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("100원 단위로 충전 가능합니다.");
     }
@@ -76,11 +85,11 @@ class PointServiceTest {
     @Test
     void 포인트_충전시_1_000_000원이_초과할_경우_충전할_수_없다() {
         // given
-        long pointId = 1L;
+        long userId = 1L;
         long amount = 1_000_100L;
 
         // when & then
-        assertThatThrownBy(() -> new ChargePointCommand(pointId, amount))
+        assertThatThrownBy(() -> new ChargePointCommand(userId, amount))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("1,000,000원을 초과하여 충전 할 수 없습니다.");
     }
