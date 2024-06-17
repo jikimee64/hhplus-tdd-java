@@ -35,4 +35,9 @@ public class UserPointTable implements UserPointRepository {
 
         }
     }
+
+    // 조회 테스트를 위한 API 추가
+    public void clear() {
+        table.clear();
+    }
 }
