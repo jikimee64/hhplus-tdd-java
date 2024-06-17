@@ -2,6 +2,7 @@ package io.hhplus.tdd.point.controller;
 
 import io.hhplus.tdd.point.application.ChargePointService;
 import io.hhplus.tdd.point.application.GetPointHistoryService;
+import io.hhplus.tdd.point.application.GetPointService;
 import io.hhplus.tdd.point.application.UsePointService;
 import io.hhplus.tdd.point.domain.PointHistory;
 import io.hhplus.tdd.point.domain.UserPoint;
@@ -22,15 +23,16 @@ public class PointController {
     private final ChargePointService chargePointService;
     private final UsePointService usePointService;
     private final GetPointHistoryService getPointHistoryService;
+    private final GetPointService getPointService;
 
     /**
      * TODO - 특정 유저의 포인트를 조회하는 기능을 작성해주세요.
      */
-    @GetMapping("{id}")
+    @GetMapping("{userId}")
     public UserPoint point(
-            @PathVariable long id
+            @PathVariable long userId
     ) {
-        return new UserPoint(0, 0, 0);
+        return getPointService.point(userId);
     }
 
     /**
