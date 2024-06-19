@@ -3,6 +3,7 @@ package io.hhplus.tdd.point.application;
 import io.hhplus.tdd.point.domain.PointHistory;
 import io.hhplus.tdd.point.domain.TransactionType;
 import io.hhplus.tdd.point.domain.UserPoint;
+import io.hhplus.tdd.point.infra.persistence.UserPointTable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -34,6 +35,9 @@ class UsePointServiceTest {
     @Autowired
     private GetPointHistoryService getPointHistoryService;
 
+    @Autowired
+    private UserPointTable userPointTable;
+
     @ParameterizedTest
     @ValueSource(longs = {100, 500_000})
     void 포인트_사용시_100원_이상_500_000원_이하로_사용할_수_있다(long amount) {
@@ -50,7 +54,7 @@ class UsePointServiceTest {
                 () -> assertThat(usedUserPoint.point()).isEqualTo(chargeAmount - amount),
                 () -> assertThatPointHistory(amount, userId, USE_SUCCESS)
         );
-
+        userPointTable.clear();
     }
 
     @ParameterizedTest
@@ -84,6 +88,7 @@ class UsePointServiceTest {
                 () -> assertThat(userPoint.point()).isEqualTo(chargeAmount),
                 () -> assertThatPointHistory(useAmount, userId, USE_FAIL)
         );
+        userPointTable.clear();
     }
 
     private void assertThatPointHistory(long amount, long userId, TransactionType type) {
