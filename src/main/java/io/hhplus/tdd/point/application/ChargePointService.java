@@ -23,7 +23,7 @@ public class ChargePointService {
             );
             return userPoint;
         }
-        userPoint = userPointRepository.insertOrUpdate(userId, amount);
+        userPoint = userPointRepository.insertOrUpdate(userId, userPoint.point() + amount);
         pointHistoryRepository.insert(
                 userId, amount, TransactionType.CHARGE_SUCCESS, System.currentTimeMillis()
         );

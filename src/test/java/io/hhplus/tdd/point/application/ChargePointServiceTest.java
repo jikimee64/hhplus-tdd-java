@@ -3,6 +3,7 @@ package io.hhplus.tdd.point.application;
 import io.hhplus.tdd.point.domain.PointHistory;
 import io.hhplus.tdd.point.domain.TransactionType;
 import io.hhplus.tdd.point.domain.UserPoint;
+import io.hhplus.tdd.point.infra.persistence.UserPointTable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -18,11 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertAll;
  * 포인트 충천 테스트 케이스
  * <p>
  * - 포인트 충전
-     * - 100원 단위로 충전이 가능하다.
-     * - 100원 미만일 시 충전에 실패한다
-     * - 100원 단위가 아닐경우 충전에 실패한다
-     * - 1_000_000원이 초과할 경우 충전할 수 없다.
-     * - 충전 성공 및 실패 내역을 기록한다
+ * - 100원 단위로 충전이 가능하다.
+ * - 100원 미만일 시 충전에 실패한다
+ * - 100원 단위가 아닐경우 충전에 실패한다
+ * - 1_000_000원이 초과할 경우 충전할 수 없다.
+ * - 충전 성공 및 실패 내역을 기록한다
  */
 @SpringBootTest
 class ChargePointServiceTest {
@@ -32,6 +33,9 @@ class ChargePointServiceTest {
 
     @Autowired
     private GetPointHistoryService getPointHistoryService;
+
+    @Autowired
+    private UserPointTable userPointTable;
 
     @ParameterizedTest
     @ValueSource(longs = {100, 1100, 12300})
@@ -47,6 +51,7 @@ class ChargePointServiceTest {
                 () -> assertThat(amount).isEqualTo(userPoint.point()),
                 () -> assertThatPointHistory(amount, userId, CHARGE_SUCCESS)
         );
+        userPointTable.clear();
     }
 
     @ParameterizedTest
@@ -62,7 +67,8 @@ class ChargePointServiceTest {
         assertAll(
                 () -> assertThat(userPoint.point()).isEqualTo(0L),
                 () -> assertThatPointHistory(amount, userId, CHARGE_FAIL)
-           );
+        );
+        userPointTable.clear();
     }
 
 
@@ -80,6 +86,7 @@ class ChargePointServiceTest {
                 () -> assertThat(userPoint.point()).isEqualTo(0L),
                 () -> assertThatPointHistory(amount, userId, CHARGE_FAIL)
         );
+        userPointTable.clear();
     }
 
     @Test
@@ -96,10 +103,11 @@ class ChargePointServiceTest {
                 () -> assertThat(userPoint.point()).isEqualTo(0L),
                 () -> assertThatPointHistory(amount, userId, CHARGE_FAIL)
         );
+        userPointTable.clear();
     }
 
     private void assertThatPointHistory(long amount, long userId, TransactionType type) {
-        PointHistory pointHistory =  getPointHistoryService.history(userId);
+        PointHistory pointHistory = getPointHistoryService.history(userId);
         assertAll(
                 () -> assertThat(pointHistory.userId()).isEqualTo(userId),
                 () -> assertThat(pointHistory.amount()).isEqualTo(amount),
