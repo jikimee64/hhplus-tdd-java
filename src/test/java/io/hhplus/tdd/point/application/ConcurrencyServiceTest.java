@@ -24,7 +24,7 @@ public class ConcurrencyServiceTest {
     private GetPointService getPointService;
 
     @Test
-    void test() throws InterruptedException {
+    void 포인트_충전_및_사용_동시성_테스트() throws InterruptedException {
         // given
         chargePointService.charge(1L, 10000);
 
