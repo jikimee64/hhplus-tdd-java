@@ -7,5 +7,8 @@ package io.hhplus.tdd.point.domain;
  * - USE : 사용
  */
 public enum TransactionType {
-    CHARGE, USE
+    CHARGE_SUCCESS,
+    CHARGE_FAIL,
+    USE_SUCCESS,
+    USE_FAIL
 }
